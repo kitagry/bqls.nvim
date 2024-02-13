@@ -92,7 +92,7 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
           node.children = {}
           for _, table_id in ipairs(table_ids) do
             local table_node = {
-              id = string.format("%s:%s:%s", project_id, dataset_id, table_id),
+              id = string.format("bqls://project/%s/dataset/%s/table/%s", project_id, dataset_id, table_id),
               name = table_id,
               type = "file",
               stat_provider = M.name,

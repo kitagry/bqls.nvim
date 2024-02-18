@@ -10,6 +10,10 @@ local function virtual_text_document_handler(uri, res, client_id)
   end
 
   local lines = util.convert_input_to_markdown_lines(res.contents)
+
+  local result_lines = vim.split(commands.convert_data_to_markdown(res.result), '\n')
+
+  vim.list_extend(lines, result_lines)
   local bufnr = vim.uri_to_bufnr(uri)
 
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)

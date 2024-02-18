@@ -3,26 +3,20 @@ local api = vim.api
 
 local M = {}
 
----@param bufnr integer
----@param result table
-local function write_result(bufnr, result)
-  if not result then
-      return
-  end
-
+---@param data {columns: table<string>, data: table<table<any>>}
+M.convert_data_to_markdown = function(data)
   local txt = ''
-  for _, column in pairs(result.columns) do
-    txt = txt .. column .. ' | '
+  for _, column in pairs(data.columns) do
+    txt = txt .. '| ' .. column .. ' '
   end
-  txt = string.sub(txt, 1, #txt - 3) .. '\n'
+  txt = txt .. ' |\n'
 
-  local i = 0
-  for _, line in pairs(result.data) do
-    if i > 100 then
-      txt = txt .. '...\n'
-      break
-    end
+  for _, _ in pairs(data.columns) do
+    txt = txt .. '| :---: '
+  end
+  txt = txt .. '|\n'
 
+  for _, line in pairs(data.data) do
     for _, value in pairs(line) do
       if type(value) == 'boolean' then
         value = value and 'true' or 'false'
@@ -33,16 +27,12 @@ local function write_result(bufnr, result)
       if value == vim.NIL then
         value = "NULL"
       end
-      txt = txt .. value .. ' | '
+      txt = txt .. '| ' .. value .. ' '
     end
-    txt = string.sub(txt, 1, #txt - 3) .. '\n'
-    i = i + 1
+    txt = txt .. ' |\n'
   end
 
-  api.nvim_buf_set_lines(bufnr, 0, 1, false, vim.split(txt, '\n'))
-  api.nvim_buf_set_option(bufnr, 'readonly', true)
-  api.nvim_buf_set_option(bufnr, 'modified', false)
-  api.nvim_buf_set_option(bufnr, 'modifiable', false)
+  return txt
 end
 
 ---@param err lsp.ResponseError
@@ -58,15 +48,17 @@ M.execute_query_handler = function(err, result, params)
   end
 
   local bufnr = vim.uri_to_bufnr(result.textDocument.uri)
-  local current_buf = api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  if #current_buf == 0 then
-    write_result(bufnr, result.result)
-    vim.lsp.buf_attach_client(bufnr, params.client_id)
-  end
-
   vim.cmd('split')
   local win = api.nvim_get_current_win()
   api.nvim_win_set_buf(win, bufnr)
+  vim.lsp.buf_attach_client(bufnr, params.client_id)
+
+  local virtual_text_document_params = {
+    textDocument = {
+      uri = result.textDocument.uri,
+    },
+  }
+  vim.lsp.buf_request(bufnr, 'bqls/virtualTextDocument', virtual_text_document_params, require("bqls").handlers['bqls/virtualTextDocument'])
 end
 
 ---@param project_id string Google Cloud project id

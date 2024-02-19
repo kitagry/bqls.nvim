@@ -36,19 +36,6 @@ M.show_new_children = function(state, node_or_path)
   if node_or_path == nil then
     node = state.tree:get_node()
     node_or_path = node:get_id()
-  -- elseif type(node_or_path) == "string" then
-  --   node = state.tree:get_node(node_or_path)
-  --   if node == nil then
-  --     local parent_path, _ = utils.split_path(node_or_path)
-  --     node = state.tree:get_node(parent_path)
-  --     if node == nil then
-  --       M.navigate(state, nil, node_or_path)
-  --       return
-  --     end
-  --   end
-  -- else
-  --   node = node_or_path
-  --   node_or_path = node:get_id()
   end
 
   if node.type ~= "directory" then
@@ -113,10 +100,10 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
         for _, result in ipairs(request_result) do
           if result.error then
             vim.notify("bqls: " .. result.error.message, vim.log.levels.ERROR)
-            return
+            goto continue
           end
           if not result.result then
-            return
+            goto continue
           end
           local dataset_ids = result.result.datasets
           node.children = {}
@@ -133,6 +120,7 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
           end
           node.loaded = true
           renderer.show_nodes(node.children, state, node:get_id())
+          ::continue::
         end
       end
       commands.execute_list_datasets(project_id, callback_func)

@@ -6,6 +6,9 @@ local M = {}
 ---@param data {columns: table<string>, data: table<table<any>>}
 M.convert_data_to_markdown = function(data)
   local txt = ''
+  if not data.columns or not data.data then
+    return txt
+  end
   for _, column in pairs(data.columns) do
     txt = txt .. '| ' .. column .. ' '
   end
@@ -59,6 +62,50 @@ M.execute_query_handler = function(err, result, params)
     },
   }
   vim.lsp.buf_request(bufnr, 'bqls/virtualTextDocument', virtual_text_document_params, require("bqls").handlers['bqls/virtualTextDocument'])
+end
+
+---@class JobHistory
+---@field textDocument `TextDocumentIdentifier`
+---@field id string
+---@field owner string
+---@field summary string
+
+---@param err lsp.ResponseError
+---@param result {jobs: JobHistory[]}
+---@param params table
+M.list_job_history_handler = function(err, result, params)
+  if err then
+    vim.notify('bqls: ' .. err.message, vim.log.levels.ERROR)
+    return
+  end
+  if not result then
+    return
+  end
+
+  -- jump to virtual text buffer
+  ---@param item JobHistory
+  local on_choice = function(item)
+    local bufnr = vim.uri_to_bufnr(item.textDocument.uri)
+    vim.cmd('split')
+    local win = api.nvim_get_current_win()
+    api.nvim_win_set_buf(win, bufnr)
+    vim.lsp.buf_attach_client(bufnr, params.client_id)
+
+    local virtual_text_document_params = {
+      textDocument = {
+        uri = item.textDocument.uri,
+      },
+    }
+    vim.lsp.buf_request(bufnr, 'bqls/virtualTextDocument', virtual_text_document_params, require("bqls").handlers['bqls/virtualTextDocument'])
+  end
+
+  -- format item
+  ---@param item JobHistory
+  local format_item = function(item)
+    return item.summary:gsub('\n', ' ')
+  end
+
+  vim.ui.select(result.jobs, { prompt = "Select a job", format_item = format_item }, on_choice)
 end
 
 ---@param project_id string Google Cloud project id

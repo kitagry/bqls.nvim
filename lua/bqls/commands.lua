@@ -27,6 +27,9 @@ M.convert_data_to_markdown = function(data)
       if type(value) == 'number' then
         value = tostring(value)
       end
+      if type(value) == 'table' then
+        value = vim.json.encode(value)
+      end
       if value == vim.NIL then
         value = "NULL"
       end

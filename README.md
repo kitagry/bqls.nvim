@@ -6,10 +6,16 @@ Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
 
 ```lua
 require("lspconfig").bqls.setup{
-    init_options = {
+    settings = {
       project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID",
     }
 }
+```
+
+If you change project_id after vim started.
+
+```vim
+:lua vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {settings = {project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID"}})
 ```
 
 If you want to show by [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim).
@@ -27,3 +33,5 @@ require("neo-tree").setup({
     },
 })
 ```
+
+And then, you can open dataset and table by `:Neotree bqls`.

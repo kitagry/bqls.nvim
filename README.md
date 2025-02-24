@@ -6,11 +6,26 @@ Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
 
 ```lua
 require("lspconfig").bqls.setup{
-    init_options = {
+    settings = {
       project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID",
     }
 }
 ```
+
+If you change project_id after vim started.
+
+```vim
+:lua vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {settings = {project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID"}})
+```
+
+## Execute Query
+
+You can choose `lua vim.lsp.buf.code_action()`.
+In order to save result to local file, you can use `:BqlsSave ./path/to/file.csv`.
+
+https://github.com/user-attachments/assets/2f5aef83-f341-4c04-bb37-88db45badb6d
+
+## BigQuery Explorer
 
 If you want to show by [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim).
 
@@ -27,3 +42,7 @@ require("neo-tree").setup({
     },
 })
 ```
+
+And then, you can open dataset and table by `:Neotree bqls`.
+
+![image](https://github.com/user-attachments/assets/83d37922-50fa-4c24-b9fd-7355238328fa)

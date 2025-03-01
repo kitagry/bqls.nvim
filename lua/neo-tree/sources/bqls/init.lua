@@ -66,62 +66,63 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
       local project_id = string.sub(node:get_id(), 0, ind-1)
       local dataset_id = string.sub(node:get_id(), ind+1)
 
-      local callback_func = function(request_result)
-        for _, result in ipairs(request_result) do
-          if result.error then
-            vim.notify("bqls: " .. result.error.message, vim.log.levels.ERROR)
-            return
-          end
-          if not result.result then
-            return
-          end
-          local table_ids = result.result.tables
-          node.children = {}
-          for _, table_id in ipairs(table_ids) do
-            local table_node = {
-              id = string.format("bqls://project/%s/dataset/%s/table/%s", project_id, dataset_id, table_id),
-              name = table_id,
-              type = "file",
-              stat_provider = M.name,
-              children = {},
-            }
-            table.insert(node.children, table_node)
-          end
-          node.loaded = true
-          renderer.show_nodes(node.children, state, node:get_id())
+      ---@param err lsp.ResponseError
+      ---@param result any
+      ---@param params table
+      local callback_func = function(err, result, params)
+        if err then
+          vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+          return
         end
+        if not result then
+          return
+        end
+        local table_ids = result.tables
+        node.children = {}
+        for _, table_id in ipairs(table_ids) do
+          local table_node = {
+            id = string.format("bqls://project/%s/dataset/%s/table/%s", project_id, dataset_id, table_id),
+            name = table_id,
+            type = "file",
+            stat_provider = M.name,
+            children = {},
+          }
+          table.insert(node.children, table_node)
+        end
+        node.loaded = true
+        renderer.show_nodes(node.children, state, node:get_id())
       end
       commands.execute_list_tables(project_id, dataset_id, callback_func)
     -- project
     else
       local project_id = node:get_id()
 
-      local callback_func = function(request_result)
-        for _, result in ipairs(request_result) do
-          if result.error then
-            vim.notify("bqls: " .. result.error.message, vim.log.levels.ERROR)
-            goto continue
-          end
-          if not result.result then
-            goto continue
-          end
-          local dataset_ids = result.result.datasets
-          node.children = {}
-          for _, dataset_id in ipairs(dataset_ids) do
-            local dataset_node = {
-              id = string.format("%s:%s", project_id, dataset_id),
-              name = dataset_id,
-              type = "directory",
-              stat_provider = M.name,
-              loaded = false,
-              children = {},
-            }
-            table.insert(node.children, dataset_node)
-          end
-          node.loaded = true
-          renderer.show_nodes(node.children, state, node:get_id())
-          ::continue::
+      ---@param err lsp.ResponseError
+      ---@param result any
+      ---@param params table
+      local callback_func = function(err, result, params)
+        if err then
+          vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+          return
         end
+        if not result then
+          return
+        end
+        local dataset_ids = result.datasets
+        node.children = {}
+        for _, dataset_id in ipairs(dataset_ids) do
+          local dataset_node = {
+            id = string.format("%s:%s", project_id, dataset_id),
+            name = dataset_id,
+            type = "directory",
+            stat_provider = M.name,
+            loaded = false,
+            children = {},
+          }
+          table.insert(node.children, dataset_node)
+        end
+        node.loaded = true
+        renderer.show_nodes(node.children, state, node:get_id())
       end
       commands.execute_list_datasets(project_id, callback_func)
     end
@@ -151,9 +152,11 @@ M.setup = function (config, global_config)
   manager.subscribe(M.name, {
     event = events.NEO_TREE_BUFFER_ENTER,
     handler = function(args)
-      local client = vim.lsp.get_active_clients({name = "bqls"})
+      local client = vim.lsp.get_clients({name = "bqls"})
       if #client == 1 then
         vim.lsp.buf_attach_client(0, client[1].id)
+      else
+        require("lspconfig.configs").bqls.launch()
       end
       manager.refresh(M.name)
     end,

@@ -30,6 +30,8 @@ M.handlers = {
       commands.execute_query_handler(err, result, params)
     elseif params.params.command == 'listJobHistories' then
       commands.list_job_history_handler(err, result, params)
+    elseif params.params.command == 'saveResult' then
+      commands.save_result_handler(err, result, params)
     else
       vim.lsp.handlers['workspace/executeCommand'](err, result, params)
     end

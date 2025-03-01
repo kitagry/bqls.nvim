@@ -111,6 +111,20 @@ M.list_job_history_handler = function(err, result, params)
   vim.ui.select(result.jobs, { prompt = "Select a job", format_item = format_item }, on_choice)
 end
 
+---@param err lsp.ResponseError
+---@param result {url: string}
+---@param params table
+M.save_result_handler = function(err, result, params)
+  if err then
+    vim.notify('bqls: ' .. err.message, vim.log.levels.ERROR)
+    return
+  end
+  if not result then
+    return
+  end
+  vim.notify('bqls: save result to ' .. result.url, vim.log.levels.INFO)
+end
+
 ---@param project_id string Google Cloud project id
 ---@param callback fun(request_results: table<integer, {error: lsp.ResponseError, result: any}>) (function)
 --- The callback to call when all requests are finished.

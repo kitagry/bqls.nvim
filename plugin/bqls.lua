@@ -30,18 +30,10 @@ vim.api.nvim_create_autocmd({'BufEnter', 'BufFilePost'}, {
         file_path = vim.fn.getcwd() .. '/' .. file_path
       end
 
-      vim.lsp.buf_request_all(0, 'workspace/executeCommand', {
+      vim.lsp.buf_request(0, 'workspace/executeCommand', {
         command = 'saveResult',
         arguments = { vim.fn.expand('%:p'), 'file://' .. file_path },
-      }, function(results)
-        for _, result in ipairs(results) do
-          if result.error then
-            vim.notify('bqls: ' .. result.error.message, vim.log.levels.ERROR)
-            return
-          end
-        end
-        vim.notify('bqls: save result to ' .. file_path, vim.log.levels.INFO)
-      end)
+      }, require('bqls').handlers['workspace/executeCommand'])
     end, { desc = "Save bqls result", nargs = '*' })
   end
 })

@@ -24,6 +24,32 @@ local function virtual_text_document_handler(uri, res, client_id)
   vim.lsp.buf_attach_client(bufnr, client_id)
 end
 
+local function definition_handler(err, result, ctx, config)
+  if not result or vim.tbl_isempty(result) then
+    return nil
+  end
+
+  local client = vim.lsp.get_client_by_id(ctx.client_id)
+  if not client then
+    return nil
+  end
+  for _, res in pairs(result) do
+    local uri = res.uri or res.targetUri
+    if uri:match '^bqls:' then
+      local params = {
+        textDocument = {
+          uri = uri,
+        },
+      }
+      vim.lsp.buf_request(0, 'bqls/virtualTextDocument', params, require("bqls").handlers['bqls/virtualTextDocument'])
+      res['uri'] = uri
+      res['targetUri'] = uri
+    end
+  end
+
+  vim.lsp.handlers[ctx.method](err, result, ctx, config)
+end
+
 M.handlers = {
   ['workspace/executeCommand'] = function(err, result, params)
     if params.params.command == 'executeQuery' then
@@ -36,6 +62,7 @@ M.handlers = {
       vim.lsp.handlers['workspace/executeCommand'](err, result, params)
     end
   end,
+  ['textDocument/definition'] = definition_handler,
   ['bqls/virtualTextDocument'] = function (err, result, ctx)
     if err then
       print(err)

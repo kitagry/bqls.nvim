@@ -4,7 +4,7 @@ local configs = require('lspconfig.configs')
 configs.bqls = {
   default_config = {
     cmd = {'bqls'},
-    filetypes = {'sql', 'bigquery', 'neo-tree', 'markdown'},
+    filetypes = {'sql', 'bigquery'},
     handlers = require('bqls').handlers,
     single_file_support=true
   },

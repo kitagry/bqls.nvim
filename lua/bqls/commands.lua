@@ -132,7 +132,7 @@ end
 --- A map of client_id:request_result will be provided to the callback.
 M.execute_list_datasets = function(project_id, callback)
   vim.lsp.buf_request(0, 'workspace/executeCommand', {
-    command = 'listDatasets',
+    command = 'bqls.listDatasets',
     arguments = { project_id },
   }, callback)
 end
@@ -145,7 +145,7 @@ end
 --- A map of client_id:request_result will be provided to the callback.
 M.execute_list_tables = function(project_id, dataset_id, callback)
   vim.lsp.buf_request(0, 'workspace/executeCommand', {
-    command = 'listTables',
+    command = 'bqls.listTables',
     arguments = { project_id, dataset_id },
   }, callback)
 end

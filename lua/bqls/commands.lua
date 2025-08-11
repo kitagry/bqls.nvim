@@ -154,9 +154,9 @@ M.exec = function (cmd)
   local result = vim.fn.systemlist(cmd)
   local bufnr = api.nvim_create_buf(false, true)
   api.nvim_buf_set_lines(bufnr, 0, -1, false, result)
-  api.nvim_buf_set_option(bufnr, 'readonly', true)
-  api.nvim_buf_set_option(bufnr, 'modified', false)
-  api.nvim_buf_set_option(bufnr, 'modifiable', false)
+  vim.bo['readonly'] = true
+  vim.bo['modified'] = false
+  vim.bo['modifiable'] = false
   api.nvim_set_current_buf(bufnr)
 end
 

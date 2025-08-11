@@ -35,13 +35,13 @@ local function definition_handler(err, result, ctx, config)
   end
   for _, res in pairs(result) do
     local uri = res.uri or res.targetUri
-    if uri:match '^bqls:' then
+    if uri:match('^bqls:') then
       local params = {
         textDocument = {
           uri = uri,
         },
       }
-      vim.lsp.buf_request(0, 'bqls/virtualTextDocument', params, require("bqls").handlers['bqls/virtualTextDocument'])
+      vim.lsp.buf_request(0, 'bqls/virtualTextDocument', params, require('bqls').handlers['bqls/virtualTextDocument'])
       res['uri'] = uri
       res['targetUri'] = uri
     end
@@ -63,7 +63,7 @@ M.handlers = {
     end
   end,
   ['textDocument/definition'] = definition_handler,
-  ['bqls/virtualTextDocument'] = function (err, result, ctx)
+  ['bqls/virtualTextDocument'] = function(err, result, ctx)
     if err then
       print(err)
       return

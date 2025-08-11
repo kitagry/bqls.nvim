@@ -31,7 +31,7 @@ M.convert_data_to_markdown = function(data)
         value = vim.json.encode(value)
       end
       if value == vim.NIL then
-        value = "NULL"
+        value = 'NULL'
       end
       txt = txt .. '| ' .. value .. ' '
     end
@@ -64,7 +64,12 @@ M.execute_query_handler = function(err, result, params)
       uri = result.textDocument.uri,
     },
   }
-  vim.lsp.buf_request(bufnr, 'bqls/virtualTextDocument', virtual_text_document_params, require("bqls").handlers['bqls/virtualTextDocument'])
+  vim.lsp.buf_request(
+    bufnr,
+    'bqls/virtualTextDocument',
+    virtual_text_document_params,
+    require('bqls').handlers['bqls/virtualTextDocument']
+  )
 end
 
 ---@class JobHistory
@@ -99,7 +104,12 @@ M.list_job_history_handler = function(err, result, params)
         uri = item.textDocument.uri,
       },
     }
-    vim.lsp.buf_request(bufnr, 'bqls/virtualTextDocument', virtual_text_document_params, require("bqls").handlers['bqls/virtualTextDocument'])
+    vim.lsp.buf_request(
+      bufnr,
+      'bqls/virtualTextDocument',
+      virtual_text_document_params,
+      require('bqls').handlers['bqls/virtualTextDocument']
+    )
   end
 
   -- format item
@@ -108,7 +118,7 @@ M.list_job_history_handler = function(err, result, params)
     return item.summary:gsub('\n', ' ')
   end
 
-  vim.ui.select(result.jobs, { prompt = "Select a job", format_item = format_item }, on_choice)
+  vim.ui.select(result.jobs, { prompt = 'Select a job', format_item = format_item }, on_choice)
 end
 
 ---@param err lsp.ResponseError
@@ -150,7 +160,7 @@ M.execute_list_tables = function(project_id, dataset_id, callback)
   }, callback)
 end
 
-M.exec = function (cmd)
+M.exec = function(cmd)
   local result = vim.fn.systemlist(cmd)
   local bufnr = api.nvim_create_buf(false, true)
   api.nvim_buf_set_lines(bufnr, 0, -1, false, result)

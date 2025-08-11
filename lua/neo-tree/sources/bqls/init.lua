@@ -1,10 +1,10 @@
 local vim = vim
-local renderer = require("neo-tree.ui.renderer")
-local manager = require("neo-tree.sources.manager")
-local events = require("neo-tree.events")
-local commands = require("bqls.commands")
+local renderer = require('neo-tree.ui.renderer')
+local manager = require('neo-tree.sources.manager')
+local events = require('neo-tree.events')
+local commands = require('bqls.commands')
 
-local M = { name = "bqls" }
+local M = { name = 'bqls' }
 
 M.get_node_stat = function(node)
   return {}
@@ -19,7 +19,7 @@ M.navigate = function(state, path)
       local project_node = {
         id = project_id,
         name = project_id,
-        type = "directory",
+        type = 'directory',
         stat_provider = M.name,
         loaded = false,
         children = {},
@@ -38,7 +38,7 @@ M.show_new_children = function(state, node_or_path)
     node_or_path = node:get_id()
   end
 
-  if node.type ~= "directory" then
+  if node.type ~= 'directory' then
     return
   end
 
@@ -50,7 +50,7 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
     return
   end
 
-  if node.type ~= "directory" then
+  if node.type ~= 'directory' then
     return
   end
 
@@ -60,18 +60,18 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
     state.explicitly_opened_directories[id] = true
     renderer.position.set(state, nil)
 
-    local ind = string.find(node:get_id(), ":")
+    local ind = string.find(node:get_id(), ':')
     -- dataset
     if ind then
-      local project_id = string.sub(node:get_id(), 0, ind-1)
-      local dataset_id = string.sub(node:get_id(), ind+1)
+      local project_id = string.sub(node:get_id(), 0, ind - 1)
+      local dataset_id = string.sub(node:get_id(), ind + 1)
 
       ---@param err lsp.ResponseError
       ---@param result any
       ---@param params table
       local callback_func = function(err, result, params)
         if err then
-          vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+          vim.notify('bqls: ' .. err.message, vim.log.levels.ERROR)
           return
         end
         if not result then
@@ -81,9 +81,9 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
         node.children = {}
         for _, table_id in ipairs(table_ids) do
           local table_node = {
-            id = string.format("bqls://project/%s/dataset/%s/table/%s", project_id, dataset_id, table_id),
+            id = string.format('bqls://project/%s/dataset/%s/table/%s', project_id, dataset_id, table_id),
             name = table_id,
-            type = "file",
+            type = 'file',
             stat_provider = M.name,
             children = {},
           }
@@ -102,7 +102,7 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
       ---@param params table
       local callback_func = function(err, result, params)
         if err then
-          vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+          vim.notify('bqls: ' .. err.message, vim.log.levels.ERROR)
           return
         end
         if not result then
@@ -112,9 +112,9 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
         node.children = {}
         for _, dataset_id in ipairs(dataset_ids) do
           local dataset_node = {
-            id = string.format("%s:%s", project_id, dataset_id),
+            id = string.format('%s:%s', project_id, dataset_id),
             name = dataset_id,
-            type = "directory",
+            type = 'directory',
             stat_provider = M.name,
             loaded = false,
             children = {},
@@ -126,7 +126,6 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
       end
       commands.execute_list_datasets(project_id, callback_func)
     end
-
   elseif node:has_children() then
     local updated = false
     if node:is_expanded() then
@@ -146,17 +145,17 @@ M.toggle_directory = function(state, node, path_to_reveal, skip_redraw, recursiv
 end
 
 ---@param config table Configuration table containing any keys that user wants to change from the defaults. May be empty to accept default values.
-M.setup = function (config, global_config)
-  M.project_ids = config.project_ids or { "bigquery-public-data" }
-  require("neo-tree.utils").register_stat_provider("bqls", M.get_node_stat)
+M.setup = function(config, global_config)
+  M.project_ids = config.project_ids or { 'bigquery-public-data' }
+  require('neo-tree.utils').register_stat_provider('bqls', M.get_node_stat)
   manager.subscribe(M.name, {
     event = events.NEO_TREE_BUFFER_ENTER,
     handler = function(args)
-      local client = vim.lsp.get_clients({name = "bqls"})
+      local client = vim.lsp.get_clients({ name = 'bqls' })
       if #client == 1 then
         vim.lsp.buf_attach_client(0, client[1].id)
       else
-        require("lspconfig.configs").bqls.launch()
+        require('lspconfig.configs').bqls.launch()
       end
       manager.refresh(M.name)
     end,

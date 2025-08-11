@@ -68,7 +68,7 @@ M.execute_query_handler = function(err, result, params)
 end
 
 ---@class JobHistory
----@field textDocument `TextDocumentIdentifier`
+---@field textDocument lsp.TextDocumentIdentifier
 ---@field id string
 ---@field owner string
 ---@field summary string

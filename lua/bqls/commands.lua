@@ -3,10 +3,14 @@ local api = vim.api
 
 local M = {}
 
----@param data {columns: table<string>, data: table<table<any>>}
+---@param data {columns: table<string>, data: table<table<any>> | vim.NIL}
 M.convert_data_to_markdown = function(data)
   local txt = ''
-  if not data.columns or not data.data then
+  -- nvim 0.12 changed how null values are handled
+  -- see https://github.com/neovim/neovim/pull/34849
+  --
+  -- keep checking if nil for compatibily with nvim 0.11
+  if not data.columns or not data.data or data.data == vim.NIL or data.columns == vim.NIL then
     return txt
   end
   for _, column in pairs(data.columns) do

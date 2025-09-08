@@ -33,6 +33,21 @@ gcloud auth application-default login
 
 ### Setting
 
+If using neovim >=0.11
+
+```lua
+vim.lsp.config("bqls", {
+    settings = {
+        project_id = "YOUR_PROJECT_ID",
+        location = "YOUR_LOCATION",
+    },
+})
+
+vim.lsp.enable("bqls")
+```
+
+If using neovim <0.10
+
 ```lua
 require("lspconfig").bqls.setup({
   settings = {

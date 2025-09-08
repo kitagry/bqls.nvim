@@ -1,38 +1,38 @@
 --This file should contain all commands meant to be used by mappings.
-local cc = require("neo-tree.sources.common.commands")
-local manager = require("neo-tree.sources.manager")
-local bqls = require("neo-tree.sources.bqls")
-local utils = require("neo-tree.utils")
+local cc = require('neo-tree.sources.common.commands')
+local manager = require('neo-tree.sources.manager')
+local bqls = require('neo-tree.sources.bqls')
+local utils = require('neo-tree.utils')
 
 local vim = vim
 
 local M = {}
 
 M.refresh = function(state)
-  manager.refresh("bqls", state)
+  manager.refresh('bqls', state)
 end
 
 local function virtual_text(state)
   local tree = state.tree
   local success, node = pcall(tree.get_node, tree)
-  if node.type == "message" then
+  if node.type == 'message' then
     return
   end
   if not (success and node) then
     return
   end
 
-  if node.type ~= "file" then
+  if node.type ~= 'file' then
     return
   end
 
   local params = {
     textDocument = {
       uri = node:get_id(),
-    }
+    },
   }
 
-  vim.lsp.buf_request(0, 'bqls/virtualTextDocument', params, require("bqls").handlers['bqls/virtualTextDocument'])
+  vim.lsp.buf_request(0, 'bqls/virtualTextDocument', params, require('bqls').handlers['bqls/virtualTextDocument'])
 end
 
 M.open = function(state)

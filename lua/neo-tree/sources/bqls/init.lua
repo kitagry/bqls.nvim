@@ -155,7 +155,7 @@ M.setup = function(config, global_config)
       if #client == 1 then
         vim.lsp.buf_attach_client(0, client[1].id)
       else
-        require('lspconfig.configs').bqls.launch()
+        vim.lsp.start(vim.lsp.config['bqls'])
       end
       manager.refresh(M.name)
     end,

@@ -36,3 +36,20 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufFilePost" }, {
 		end, { desc = "Save bqls result", nargs = "*" })
 	end,
 })
+vim.api.nvim_create_autocmd("BufNew", {
+	pattern = { "bqls://*" },
+	group = "BqlsCommands",
+	callback = function(ev)
+		local params = {
+			textDocument = {
+				uri = ev.file,
+			},
+		}
+		vim.lsp.buf_request(
+			0,
+			"bqls/virtualTextDocument",
+			params,
+			require("bqls").handlers["bqls/virtualTextDocument"]
+		)
+	end,
+})

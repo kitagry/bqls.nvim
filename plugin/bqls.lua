@@ -45,11 +45,6 @@ vim.api.nvim_create_autocmd("BufNew", {
 				uri = ev.file,
 			},
 		}
-		vim.lsp.buf_request(
-			0,
-			"bqls/virtualTextDocument",
-			params,
-			require("bqls").handlers["bqls/virtualTextDocument"]
-		)
+		vim.lsp.buf_request(0, "bqls/virtualTextDocument", params, require("bqls").handlers["bqls/virtualTextDocument"])
 	end,
 })

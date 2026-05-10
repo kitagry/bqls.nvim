@@ -16,6 +16,7 @@ local function virtual_text_document_handler(uri, res, client_id)
 	vim.list_extend(lines, result_lines)
 	local bufnr = vim.uri_to_bufnr(uri)
 
+	vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value("readonly", true, { buf = bufnr })
 	vim.api.nvim_set_option_value("modified", false, { buf = bufnr })

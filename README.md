@@ -31,6 +31,10 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
+### Optional Dependencies
+
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim): If installed, job history selection (e.g. `:BqlsListJobHistory`) uses a telescope picker with SQL preview. Without it, `vim.ui.select` is used as a fallback.
+
 ### Setting
 
 If using neovim >=0.11

@@ -82,6 +82,53 @@ end
 ---@field owner string
 ---@field summary string
 
+---@param jobs JobHistory[]
+---@param on_choice fun(item: JobHistory)
+local function select_jobs_with_telescope(jobs, on_choice)
+	local pickers = require("telescope.pickers")
+	local finders = require("telescope.finders")
+	local conf = require("telescope.config").values
+	local actions = require("telescope.actions")
+	local action_state = require("telescope.actions.state")
+	local previewers = require("telescope.previewers")
+
+	local previewer = previewers.new_buffer_previewer({
+		define_preview = function(self, entry)
+			local lines = vim.split(entry.value.summary, "\n")
+			api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+			vim.bo[self.state.bufnr].filetype = "sql"
+		end,
+	})
+
+	pickers
+		.new({}, {
+			prompt_title = "Select a job",
+			finder = finders.new_table({
+				results = jobs,
+				entry_maker = function(item)
+					return {
+						value = item,
+						display = item.summary:gsub("\n", " "),
+						ordinal = item.summary,
+					}
+				end,
+			}),
+			sorter = conf.generic_sorter({}),
+			previewer = previewer,
+			attach_mappings = function(prompt_bufnr)
+				actions.select_default:replace(function()
+					actions.close(prompt_bufnr)
+					local selection = action_state.get_selected_entry()
+					if selection then
+						on_choice(selection.value)
+					end
+				end)
+				return true
+			end,
+		})
+		:find()
+end
+
 ---@param err lsp.ResponseError
 ---@param result {jobs: JobHistory[]}
 ---@param params table
@@ -116,13 +163,15 @@ M.list_job_history_handler = function(err, result, params)
 		)
 	end
 
-	-- format item
-	---@param item JobHistory
-	local format_item = function(item)
-		return item.summary:gsub("\n", " ")
+	if pcall(require, "telescope") then
+		select_jobs_with_telescope(result.jobs, on_choice)
+	else
+		---@param item JobHistory
+		local format_item = function(item)
+			return item.summary:gsub("\n", " ")
+		end
+		vim.ui.select(result.jobs, { prompt = "Select a job", format_item = format_item }, on_choice)
 	end
-
-	vim.ui.select(result.jobs, { prompt = "Select a job", format_item = format_item }, on_choice)
 end
 
 ---@param err lsp.ResponseError

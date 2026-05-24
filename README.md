@@ -79,24 +79,39 @@ In order to save result to local file, you can use `:BqlsSave ./path/to/file.csv
 
 https://github.com/user-attachments/assets/2f5aef83-f341-4c04-bb37-88db45badb6d
 
-## BigQuery Explorer
+## BigQuery Explorer (Sidebar)
 
-If you want to show by [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim).
+A built-in sidebar to browse projects, datasets, and tables without any extra dependencies.
+
+### Setup
 
 ```lua
-require("neo-tree").setup({
-    sources = {
-      "filesystem",
-      "buffers",
-      "git_status",
-      "bqls"
-    },
-    bqls = {
-      project_ids = { "YOUR_GOOGLE_CLOUD_PROJECT_ID1", "YOUR_GOOGLE_CLOUD_PROJECT_ID2" },  -- default is {"bigquery-public-data"}
-    },
+require("bqls").setup({
+  project_ids = { "YOUR_GOOGLE_CLOUD_PROJECT_ID1", "YOUR_GOOGLE_CLOUD_PROJECT_ID2" },
 })
 ```
 
-And then, you can open dataset and table by `:Neotree bqls`.
+`project_ids` defaults to `{ "bigquery-public-data" }` if not specified.
 
-![image](https://github.com/user-attachments/assets/83d37922-50fa-4c24-b9fd-7355238328fa)
+### Opening the Sidebar
+
+```lua
+require("bqls").sidebar.toggle()  -- toggle open/close
+require("bqls").sidebar.open()
+require("bqls").sidebar.close()
+```
+
+Example keybinding:
+
+```lua
+vim.keymap.set("n", "<leader>db", require("bqls").sidebar.toggle)
+```
+
+### Sidebar Keymaps
+
+| Key | Action |
+|-----|--------|
+| `<CR>` / `o` | Expand/collapse project or dataset; open table in current window |
+| `s` | Open table in horizontal split |
+| `v` | Open table in vertical split |
+| `q` | Close sidebar |

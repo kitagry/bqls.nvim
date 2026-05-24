@@ -4,6 +4,12 @@ local commands = require("bqls.commands")
 
 local M = {}
 
+M.sidebar = require("bqls.sidebar")
+
+M.setup = function(config)
+	M.sidebar.setup(config)
+end
+
 local function virtual_text_document_handler(uri, res, client_id)
 	if not res then
 		return nil

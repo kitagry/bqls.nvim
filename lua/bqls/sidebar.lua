@@ -193,6 +193,85 @@ local function toggle_node()
 	render()
 end
 
+local function search_tables()
+	vim.ui.input({ prompt = "Search tables: " }, function(query)
+		if not query or query == "" then
+			return
+		end
+
+		local arguments = { query }
+		for _, root in ipairs(_state.roots) do
+			table.insert(arguments, root.id)
+		end
+
+		vim.lsp.buf_request(_state.bufnr, "workspace/executeCommand", {
+			command = "bqls.searchTables",
+			arguments = arguments,
+		}, function(err, result)
+			if err then
+				vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+				return
+			end
+			if not result or not result.tables or #result.tables == 0 then
+				vim.notify("bqls: no tables found", vim.log.levels.INFO)
+				return
+			end
+
+			local function on_choice(item)
+				local node = table_node(item.projectId, item.datasetId, item.tableId)
+				open_table(node)
+			end
+
+			if pcall(require, "telescope") then
+				local pickers = require("telescope.pickers")
+				local finders = require("telescope.finders")
+				local conf = require("telescope.config").values
+				local actions = require("telescope.actions")
+				local action_state = require("telescope.actions.state")
+
+				pickers
+					.new({}, {
+						prompt_title = "Search Tables",
+						finder = finders.new_table({
+							results = result.tables,
+							entry_maker = function(item)
+								local display = string.format("%s.%s.%s", item.projectId, item.datasetId, item.tableId)
+								return {
+									value = item,
+									display = display,
+									ordinal = display,
+								}
+							end,
+						}),
+						sorter = conf.generic_sorter({}),
+						attach_mappings = function(prompt_bufnr)
+							actions.select_default:replace(function()
+								actions.close(prompt_bufnr)
+								local selection = action_state.get_selected_entry()
+								if selection then
+									on_choice(selection.value)
+								end
+							end)
+							return true
+						end,
+					})
+					:find()
+			else
+				vim.ui.select(result.tables, {
+					prompt = "Search Tables",
+					format_item = function(item)
+						return string.format("%s.%s.%s", item.projectId, item.datasetId, item.tableId)
+					end,
+				}, function(item)
+					if item then
+						on_choice(item)
+					end
+				end)
+			end
+		end)
+	end)
+end
+
 local function setup_keymaps(bufnr)
 	local opts = { noremap = true, silent = true, nowait = true }
 	local function map(lhs, fn)
@@ -212,6 +291,7 @@ local function setup_keymaps(bufnr)
 			open_table(node, "vsplit")
 		end
 	end)
+	map("f", search_tables)
 	map("q", function()
 		M.close()
 	end)

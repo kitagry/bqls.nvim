@@ -114,4 +114,5 @@ vim.keymap.set("n", "<leader>db", require("bqls").sidebar.toggle)
 | `<CR>` / `o` | Expand/collapse project or dataset; open table in current window |
 | `s` | Open table in horizontal split |
 | `v` | Open table in vertical split |
+| `f` | Search tables across sidebar projects (requires bqls v0.6.0+) |
 | `q` | Close sidebar |

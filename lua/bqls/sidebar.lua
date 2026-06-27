@@ -209,7 +209,11 @@ local function search_tables()
 			arguments = arguments,
 		}, function(err, result)
 			if err then
-				vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+				local msg = err.message
+				if msg:match("unknown command") then
+					msg = msg .. " (bqls v0.6.0+ is required for table search)"
+				end
+				vim.notify("bqls: " .. msg, vim.log.levels.ERROR)
 				return
 			end
 			if not result or not result.tables or #result.tables == 0 then

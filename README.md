@@ -13,13 +13,21 @@ Before using this plugin, you need to install the bqls language server:
 
 #### Installation
 
-1. **Install from Releases** (Recommended):
+1. **Via plugin manager** (Recommended):
+   Use the `build` hook to automatically download the latest binary:
+   ```lua
+   -- lazy.nvim
+   {
+     "kitagry/bqls.nvim",
+     build = "./install.sh",
+   }
+   ```
+
+2. **Install from Releases**:
    Download the latest binary from [GitHub Releases](https://github.com/kitagry/bqls/releases) and place it in your PATH.
 
-2. **Build from Source**:
+3. **Build from Source**:
    ```bash
-   export CGO_ENABLED=1
-   export CXX=clang++
    go install github.com/kitagry/bqls@latest
    ```
 
@@ -114,4 +122,11 @@ vim.keymap.set("n", "<leader>db", require("bqls").sidebar.toggle)
 | `<CR>` / `o` | Expand/collapse project or dataset; open table in current window |
 | `s` | Open table in horizontal split |
 | `v` | Open table in vertical split |
+| `f` | Search tables across all projects in the sidebar |
 | `q` | Close sidebar |
+
+### Table Search
+
+Press `f` in the sidebar to search tables across all displayed projects. Results are shown via telescope picker (falls back to `vim.ui.select` if telescope is not installed). Selecting a result opens the table in a non-sidebar window.
+
+> **Note:** Table search requires bqls server **v0.6.0 or above**.

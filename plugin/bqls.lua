@@ -1,9 +1,12 @@
 local vim = vim
 local configs = require("lspconfig.configs")
 
+local plugin_dir = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":h:h")
+local local_bin = plugin_dir .. "/bin/bqls"
+
 configs.bqls = {
 	default_config = {
-		cmd = { "bqls" },
+		cmd = vim.fn.executable(local_bin) == 1 and { local_bin } or { "bqls" },
 		filetypes = { "sql", "bigquery" },
 		handlers = require("bqls").handlers,
 		single_file_support = true,

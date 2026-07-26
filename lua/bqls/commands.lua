@@ -68,12 +68,15 @@ M.execute_query_handler = function(err, result, params)
 			uri = result.textDocument.uri,
 		},
 	}
-	vim.lsp.buf_request(
-		bufnr,
-		"bqls/virtualTextDocument",
-		virtual_text_document_params,
-		require("bqls").handlers["bqls/virtualTextDocument"]
-	)
+	local client = vim.lsp.get_client_by_id(params.client_id)
+	if client then
+		client:request(
+			"bqls/virtualTextDocument",
+			virtual_text_document_params,
+			require("bqls").handlers["bqls/virtualTextDocument"],
+			bufnr
+		)
+	end
 end
 
 ---@class JobHistory
@@ -155,12 +158,15 @@ M.list_job_history_handler = function(err, result, params)
 				uri = item.textDocument.uri,
 			},
 		}
-		vim.lsp.buf_request(
-			bufnr,
-			"bqls/virtualTextDocument",
-			virtual_text_document_params,
-			require("bqls").handlers["bqls/virtualTextDocument"]
-		)
+		local client = vim.lsp.get_client_by_id(params.client_id)
+		if client then
+			client:request(
+				"bqls/virtualTextDocument",
+				virtual_text_document_params,
+				require("bqls").handlers["bqls/virtualTextDocument"],
+				bufnr
+			)
+		end
 	end
 
 	if pcall(require, "telescope") then

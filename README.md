@@ -130,3 +130,11 @@ vim.keymap.set("n", "<leader>db", require("bqls").sidebar.toggle)
 Press `f` in the sidebar to search tables across all displayed projects. Results are shown via telescope picker (falls back to `vim.ui.select` if telescope is not installed). Selecting a result opens the table in a non-sidebar window.
 
 > **Note:** Table search requires bqls server **v0.6.0 or above**.
+
+## Development
+
+Run the test suite (requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)):
+
+```sh
+make test
+```

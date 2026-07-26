@@ -10,18 +10,16 @@ M.setup = function(config)
 	M.sidebar.setup(config)
 end
 
-local function virtual_text_document_handler(uri, res, client_id)
-	if not res then
-		return nil
-	end
+-- Details received via bqls/publishVirtualTextDocument, keyed by uri, held
+-- until the matching preview notification arrives so the two can be
+-- rendered together in the same buffer.
+local pending_details = {}
 
-	local lines = util.convert_input_to_markdown_lines(res.contents)
-
-	local result_lines = vim.split(commands.convert_data_to_markdown(res.result), "\n")
-
-	vim.list_extend(lines, result_lines)
-	local bufnr = vim.uri_to_bufnr(uri)
-
+local function write_virtual_document(bufnr, lines, client_id)
+	-- A buffer whose contents already arrived (e.g. "details") is
+	-- readonly, so re-enable writes before overwriting it with the next
+	-- notification (e.g. "preview") to avoid a W10 warning.
+	vim.api.nvim_set_option_value("readonly", false, { buf = bufnr })
 	vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value("readonly", true, { buf = bufnr })
@@ -29,6 +27,55 @@ local function virtual_text_document_handler(uri, res, client_id)
 	vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 	vim.api.nvim_set_option_value("filetype", "markdown", { buf = bufnr })
 	vim.lsp.buf_attach_client(bufnr, client_id)
+end
+
+local function virtual_text_document_handler(uri, res, client_id)
+	if not res then
+		return nil
+	end
+
+	local bufnr = vim.uri_to_bufnr(uri)
+
+	if res.pending then
+		-- Discard details from any earlier fetch of this uri: the server
+		-- only publishes notifications for the latest request, so a stale
+		-- cache entry here would otherwise leak into the next preview.
+		pending_details[uri] = nil
+		write_virtual_document(bufnr, { "Loading..." }, client_id)
+		return
+	end
+
+	local lines = util.convert_input_to_markdown_lines(res.contents)
+
+	local result_lines = vim.split(commands.convert_data_to_markdown(res.result), "\n")
+
+	vim.list_extend(lines, result_lines)
+	write_virtual_document(bufnr, lines, client_id)
+end
+
+local function publish_virtual_text_document_handler(_, params, ctx)
+	local uri = params.textDocument.uri
+	local bufnr = vim.uri_to_bufnr(uri)
+
+	if params.error then
+		pending_details[uri] = nil
+		write_virtual_document(bufnr, { "Error: " .. params.error }, ctx.client_id)
+		return
+	end
+
+	if params.kind == "details" then
+		local lines = util.convert_input_to_markdown_lines(params.contents)
+		pending_details[uri] = lines
+		local buffer_lines = vim.list_extend({}, lines)
+		vim.list_extend(buffer_lines, { "", "Loading preview..." })
+		write_virtual_document(bufnr, buffer_lines, ctx.client_id)
+	elseif params.kind == "preview" then
+		local lines = pending_details[uri] or {}
+		pending_details[uri] = nil
+		local result_lines = vim.split(commands.convert_data_to_markdown(params.result), "\n")
+		vim.list_extend(lines, result_lines)
+		write_virtual_document(bufnr, lines, ctx.client_id)
+	end
 end
 
 local function definition_handler(err, result, ctx, config)
@@ -78,6 +125,7 @@ M.handlers = {
 
 		virtual_text_document_handler(ctx.params.textDocument.uri, result, ctx.client_id)
 	end,
+	["bqls/publishVirtualTextDocument"] = publish_virtual_text_document_handler,
 }
 
 return M

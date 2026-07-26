@@ -8,4 +8,5 @@ return {
 	root_markers = { ".git" },
 	handlers = require("bqls").handlers,
 	settings = {},
+	init_options = { supports_async_virtual_text_document = true },
 }

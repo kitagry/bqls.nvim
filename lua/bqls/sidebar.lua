@@ -112,7 +112,7 @@ local function open_table(node, how)
 	end
 
 	api.nvim_win_set_buf(api.nvim_get_current_win(), target_bufnr)
-	vim.lsp.buf_request(
+	require("bqls.util").bqls_request(
 		target_bufnr,
 		"bqls/virtualTextDocument",
 		{ textDocument = { uri = uri } },

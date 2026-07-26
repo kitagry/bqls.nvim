@@ -48,12 +48,7 @@ local function definition_handler(err, result, ctx, config)
 					uri = uri,
 				},
 			}
-			vim.lsp.buf_request(
-				0,
-				"bqls/virtualTextDocument",
-				params,
-				require("bqls").handlers["bqls/virtualTextDocument"]
-			)
+			client:request("bqls/virtualTextDocument", params, require("bqls").handlers["bqls/virtualTextDocument"], 0)
 			res["uri"] = uri
 			res["targetUri"] = uri
 		end

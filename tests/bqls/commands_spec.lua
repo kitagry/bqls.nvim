@@ -66,3 +66,60 @@ describe("bqls.commands.convert_data_to_markdown", function()
 		end
 	end)
 end)
+
+describe("bqls.commands.convert_schema_to_markdown", function()
+	it("renders a flat schema as a markdown table with name/type/mode/description", function()
+		local result = commands.convert_schema_to_markdown({
+			{ name = "id", type = "INTEGER", required = true, description = "primary key" },
+			{ name = "name", type = "STRING" },
+		})
+
+		assert.are.same(
+			"| Name | Type | Mode | Description |\n"
+				.. "| --- | --- | --- | --- |\n"
+				.. "| id | INTEGER | REQUIRED | primary key |\n"
+				.. "| name | STRING | NULLABLE |  |\n",
+			result,
+			"expected a markdown table listing each column's name, type, mode, and description"
+		)
+	end)
+
+	it("marks repeated fields as REPEATED", function()
+		local result = commands.convert_schema_to_markdown({
+			{ name = "tags", type = "STRING", repeated = true },
+		})
+
+		assert.is_true(
+			vim.tbl_contains(vim.split(result, "\n"), "| tags | STRING | REPEATED |  |"),
+			"expected the repeated field's mode to be REPEATED"
+		)
+	end)
+
+	it("indents nested RECORD fields under their parent", function()
+		local result = commands.convert_schema_to_markdown({
+			{
+				name = "address",
+				type = "RECORD",
+				fields = {
+					{ name = "city", type = "STRING" },
+				},
+			},
+		})
+
+		local lines = vim.split(result, "\n")
+		assert.is_true(
+			vim.tbl_contains(lines, "| address | RECORD | NULLABLE |  |"),
+			"expected the parent RECORD field as its own row"
+		)
+		assert.is_true(
+			vim.tbl_contains(lines, "| &nbsp;&nbsp;city | STRING | NULLABLE |  |"),
+			"expected the nested field indented under its parent"
+		)
+	end)
+
+	it("returns an empty string when the schema is empty, nil, or vim.NIL", function()
+		assert.are.same("", commands.convert_schema_to_markdown(nil))
+		assert.are.same("", commands.convert_schema_to_markdown(vim.NIL))
+		assert.are.same("", commands.convert_schema_to_markdown({}))
+	end)
+end)

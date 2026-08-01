@@ -47,6 +47,12 @@ local function virtual_text_document_handler(uri, res, client_id)
 
 	local lines = util.convert_input_to_markdown_lines(res.contents)
 
+	local schema_markdown = commands.convert_schema_to_markdown(res.schema)
+	if schema_markdown ~= "" then
+		vim.list_extend(lines, { "", "### Schema", "" })
+		vim.list_extend(lines, vim.split(schema_markdown, "\n"))
+	end
+
 	local result_lines = vim.split(commands.convert_data_to_markdown(res.result), "\n")
 
 	vim.list_extend(lines, result_lines)
@@ -65,6 +71,13 @@ local function publish_virtual_text_document_handler(_, params, ctx)
 
 	if params.kind == "details" then
 		local lines = util.convert_input_to_markdown_lines(params.contents)
+
+		local schema_markdown = commands.convert_schema_to_markdown(params.schema)
+		if schema_markdown ~= "" then
+			vim.list_extend(lines, { "", "### Schema", "" })
+			vim.list_extend(lines, vim.split(schema_markdown, "\n"))
+		end
+
 		pending_details[uri] = lines
 		local buffer_lines = vim.list_extend({}, lines)
 		vim.list_extend(buffer_lines, { "", "Loading preview..." })

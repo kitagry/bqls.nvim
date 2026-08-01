@@ -45,6 +45,50 @@ M.convert_data_to_markdown = function(data)
 	return txt
 end
 
+---@class FieldSchema
+---@field name string
+---@field type string
+---@field repeated boolean|nil
+---@field required boolean|nil
+---@field description string|nil
+---@field fields FieldSchema[]|nil
+
+---@param schema FieldSchema[]
+local function write_schema_rows(lines, schema, depth)
+	local indent = string.rep("&nbsp;&nbsp;", depth)
+	for _, field in ipairs(schema) do
+		local mode = "NULLABLE"
+		if field.repeated then
+			mode = "REPEATED"
+		elseif field.required then
+			mode = "REQUIRED"
+		end
+
+		local description = field.description
+		if description == nil or description == vim.NIL then
+			description = ""
+		end
+
+		table.insert(lines, string.format("| %s%s | %s | %s | %s |", indent, field.name, field.type, mode, description))
+
+		if field.fields and field.fields ~= vim.NIL and #field.fields > 0 then
+			write_schema_rows(lines, field.fields, depth + 1)
+		end
+	end
+end
+
+---@param schema FieldSchema[]|nil
+M.convert_schema_to_markdown = function(schema)
+	if not schema or schema == vim.NIL or vim.tbl_isempty(schema) then
+		return ""
+	end
+
+	local lines = { "| Name | Type | Mode | Description |", "| --- | --- | --- | --- |" }
+	write_schema_rows(lines, schema, 0)
+
+	return table.concat(lines, "\n") .. "\n"
+end
+
 ---@param err lsp.ResponseError
 ---@param result any
 ---@param params table

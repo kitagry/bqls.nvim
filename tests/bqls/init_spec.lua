@@ -22,6 +22,28 @@ describe("bqls/virtualTextDocument handler", function()
 		assert.is_true(vim.tbl_contains(lines, "| id  |"), "expected the result table header in the buffer")
 	end)
 
+	it("renders the table schema when the response includes one", function()
+		local uri = "bqls://project/p/dataset/d/table/schema"
+		local bufnr = vim.uri_to_bufnr(uri)
+
+		bqls.handlers["bqls/virtualTextDocument"](nil, {
+			contents = { "# schema table" },
+			schema = {
+				{ name = "id", type = "INTEGER", required = true },
+			},
+			result = { columns = { "id" }, data = { { 1 } } },
+		}, {
+			client_id = 0,
+			params = { textDocument = { uri = uri } },
+		})
+
+		local lines = get_lines(bufnr)
+		assert.is_true(
+			vim.tbl_contains(lines, "| id | INTEGER | REQUIRED |  |"),
+			"expected the table's column schema to be rendered in the buffer"
+		)
+	end)
+
 	it("shows a loading placeholder instead of crashing when the response is pending", function()
 		local uri = "bqls://project/p/dataset/d/table/pending"
 		local bufnr = vim.uri_to_bufnr(uri)
@@ -51,6 +73,26 @@ describe("bqls/publishVirtualTextDocument handler", function()
 		assert.is_true(
 			vim.tbl_contains(lines, "Loading preview..."),
 			"expected a placeholder for the not-yet-arrived preview"
+		)
+	end)
+
+	it("renders the table schema included with the details notification", function()
+		local uri = "bqls://project/p/dataset/d/table/details-schema"
+		local bufnr = vim.uri_to_bufnr(uri)
+
+		bqls.handlers["bqls/publishVirtualTextDocument"](nil, {
+			textDocument = { uri = uri },
+			kind = "details",
+			contents = { "# details table" },
+			schema = {
+				{ name = "id", type = "INTEGER", required = true },
+			},
+		}, { client_id = 0 })
+
+		local lines = get_lines(bufnr)
+		assert.is_true(
+			vim.tbl_contains(lines, "| id | INTEGER | REQUIRED |  |"),
+			"expected the table's column schema to be rendered in the buffer"
 		)
 	end)
 

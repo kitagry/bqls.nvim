@@ -6,11 +6,6 @@ Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
 
 Before using this plugin, you need to install the bqls language server:
 
-#### Requirements
-- Go 1.16 or later
-- CGO enabled (`CGO_ENABLED=1`)
-- Recommended: `clang++` compiler
-
 #### Installation
 
 1. **Via plugin manager** (Recommended):
@@ -27,9 +22,17 @@ Before using this plugin, you need to install the bqls language server:
    Download the latest binary from [GitHub Releases](https://github.com/kitagry/bqls/releases) and place it in your PATH.
 
 3. **Build from Source**:
+   Requires Go 1.16 or later.
    ```bash
    go install github.com/kitagry/bqls@latest
    ```
+
+#### Updating
+
+`install.sh` always downloads the latest release, but plugin managers only re-run the `build` hook when the plugin itself is updated, not on every startup. To pull in a new bqls release without waiting for a plugin update:
+
+- lazy.nvim: run `:Lazy build bqls.nvim` (or press `b` on `bqls.nvim` in the `:Lazy` UI) to re-run `install.sh`.
+- Or run the script directly: `sh ~/.local/share/nvim/lazy/bqls.nvim/install.sh` (adjust the path for your plugin manager).
 
 #### Authentication
 

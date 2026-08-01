@@ -141,3 +141,11 @@ Run the test suite (requires [plenary.nvim](https://github.com/nvim-lua/plenary.
 ```sh
 make test
 ```
+
+To manually try changes against a real bqls server without touching your own Neovim config, use the dev entrypoint (requires a `bqls` binary on your `PATH` and [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)):
+
+```sh
+nvim -u scripts/dev_init.lua
+# or against a project other than bigquery-public-data:
+BQLS_PROJECT_ID=my-project nvim -u scripts/dev_init.lua
+```

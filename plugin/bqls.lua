@@ -10,6 +10,7 @@ configs.bqls = {
 		filetypes = { "sql", "bigquery" },
 		handlers = require("bqls").handlers,
 		single_file_support = true,
+		init_options = { supports_async_virtual_text_document = true },
 	},
 }
 

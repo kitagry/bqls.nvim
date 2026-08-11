@@ -165,3 +165,64 @@ describe("bqls/publishVirtualTextDocument handler", function()
 		)
 	end)
 end)
+
+describe("bqls.on_init", function()
+	local original_notify
+
+	before_each(function()
+		original_notify = vim.notify
+	end)
+
+	after_each(function()
+		vim.notify = original_notify
+		-- Reset any min_version configured by a test so state doesn't leak.
+		bqls.setup({})
+	end)
+
+	local function capture_notify()
+		local calls = {}
+		vim.notify = function(msg, level)
+			table.insert(calls, { msg = msg, level = level })
+		end
+		return calls
+	end
+
+	it("does not warn when min_version is not configured", function()
+		bqls.setup({})
+		local calls = capture_notify()
+
+		bqls.on_init(nil, { serverInfo = { version = "v0.1.0" } })
+
+		assert.are.same({}, calls)
+	end)
+
+	it("warns when the server version is older than min_version", function()
+		bqls.setup({ min_version = "0.6.0" })
+		local calls = capture_notify()
+
+		bqls.on_init(nil, { serverInfo = { version = "v0.5.0" } })
+
+		assert.are.same(1, #calls)
+		assert.are.same(vim.log.levels.WARN, calls[1].level)
+		assert.truthy(calls[1].msg:find("0.5.0", 1, true))
+		assert.truthy(calls[1].msg:find("0.6.0", 1, true))
+	end)
+
+	it("does not warn when the server version meets min_version", function()
+		bqls.setup({ min_version = "0.6.0" })
+		local calls = capture_notify()
+
+		bqls.on_init(nil, { serverInfo = { version = "v0.6.0" } })
+
+		assert.are.same({}, calls)
+	end)
+
+	it("does not warn when the server does not report a version", function()
+		bqls.setup({ min_version = "0.6.0" })
+		local calls = capture_notify()
+
+		bqls.on_init(nil, {})
+
+		assert.are.same({}, calls)
+	end)
+end)

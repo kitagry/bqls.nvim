@@ -7,6 +7,7 @@ return {
 	filetypes = { "sql" },
 	root_markers = { ".git" },
 	handlers = require("bqls").handlers,
+	on_init = require("bqls").on_init,
 	settings = {},
 	init_options = { supports_async_virtual_text_document = true },
 }

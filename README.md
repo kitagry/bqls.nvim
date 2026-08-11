@@ -104,6 +104,18 @@ require("bqls").setup({
 
 `project_ids` defaults to `{ "bigquery-public-data" }` if not specified.
 
+### Checking the bqls Server Version
+
+Some features (e.g. [Table Search](#table-search)) require a minimum version of the bqls server. Set `min_version` to have bqls.nvim warn you when the running server is older than expected:
+
+```lua
+require("bqls").setup({
+  min_version = "0.6.0",
+})
+```
+
+If the connected bqls server reports an older version, a warning is printed via `vim.notify` (`vim.log.levels.WARN`) once the LSP client initializes. This does not stop the client from attaching. `min_version` is optional; if it's not set, no check is performed.
+
 ### Opening the Sidebar
 
 ```lua

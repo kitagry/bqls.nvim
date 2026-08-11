@@ -7,38 +7,35 @@ local M = {}
 
 M.sidebar = require("bqls.sidebar")
 
-M._config = {}
-
 M.setup = function(config)
-	config = config or {}
-	M._config.min_version = config.min_version
 	M.sidebar.setup(config)
 end
 
---- Warns when the running bqls server is older than the configured
---- min_version. Wired up as the `on_init` callback in lsp/bqls.lua.
+--- Warns for each bqls.nvim feature (see version.REQUIREMENTS) whose minimum
+--- bqls server version the connected server predates. Runs unconditionally
+--- on every LSP init, independent of whether setup() was called, since the
+--- requirements come from bqls.nvim itself rather than user configuration.
+--- Wired up as the `on_init` callback in lsp/bqls.lua.
 ---@param _ vim.lsp.Client
 ---@param initialize_result lsp.InitializeResult
 M.on_init = function(_, initialize_result)
-	local min_version = M._config.min_version
-	if not min_version then
-		return
-	end
-
 	local server_version = initialize_result and initialize_result.serverInfo and initialize_result.serverInfo.version
 	if not server_version then
 		return
 	end
 
-	if version.is_older_than(server_version, min_version) then
-		vim.notify(
-			string.format(
-				"bqls: server version %s is older than the configured min_version %s. Please update the bqls server.",
-				server_version,
-				min_version
-			),
-			vim.log.levels.WARN
-		)
+	for _, req in ipairs(version.REQUIREMENTS) do
+		if version.is_older_than(server_version, req.min_version) then
+			vim.notify(
+				string.format(
+					"bqls: connected server version %s is older than %s required for '%s'. Please update the bqls server.",
+					server_version,
+					req.min_version,
+					req.feature
+				),
+				vim.log.levels.WARN
+			)
+		end
 	end
 end
 

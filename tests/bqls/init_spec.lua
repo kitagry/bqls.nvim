@@ -1,4 +1,5 @@
 local bqls = require("bqls")
+local version = require("bqls.version")
 
 local function get_lines(bufnr)
 	return vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -175,8 +176,6 @@ describe("bqls.on_init", function()
 
 	after_each(function()
 		vim.notify = original_notify
-		-- Reset any min_version configured by a test so state doesn't leak.
-		bqls.setup({})
 	end)
 
 	local function capture_notify()
@@ -187,38 +186,30 @@ describe("bqls.on_init", function()
 		return calls
 	end
 
-	it("does not warn when min_version is not configured", function()
-		bqls.setup({})
+	it("does not warn when the server meets every feature's minimum version, without calling setup()", function()
 		local calls = capture_notify()
 
-		bqls.on_init(nil, { serverInfo = { version = "v0.1.0" } })
+		-- No bqls.setup() call: the check must not depend on it.
+		bqls.on_init(nil, { serverInfo = { version = "v999.999.999" } })
 
 		assert.are.same({}, calls)
 	end)
 
-	it("warns when the server version is older than min_version", function()
-		bqls.setup({ min_version = "0.6.0" })
+	it("warns once per feature the connected server predates", function()
 		local calls = capture_notify()
 
-		bqls.on_init(nil, { serverInfo = { version = "v0.5.0" } })
+		bqls.on_init(nil, { serverInfo = { version = "v0.0.1" } })
 
-		assert.are.same(1, #calls)
-		assert.are.same(vim.log.levels.WARN, calls[1].level)
-		assert.truthy(calls[1].msg:find("0.5.0", 1, true))
-		assert.truthy(calls[1].msg:find("0.6.0", 1, true))
-	end)
-
-	it("does not warn when the server version meets min_version", function()
-		bqls.setup({ min_version = "0.6.0" })
-		local calls = capture_notify()
-
-		bqls.on_init(nil, { serverInfo = { version = "v0.6.0" } })
-
-		assert.are.same({}, calls)
+		assert.are.same(#version.REQUIREMENTS, #calls)
+		for i, req in ipairs(version.REQUIREMENTS) do
+			assert.are.same(vim.log.levels.WARN, calls[i].level)
+			assert.truthy(calls[i].msg:find(req.feature, 1, true))
+			assert.truthy(calls[i].msg:find(req.min_version, 1, true))
+			assert.truthy(calls[i].msg:find("0.0.1", 1, true))
+		end
 	end)
 
 	it("does not warn when the server does not report a version", function()
-		bqls.setup({ min_version = "0.6.0" })
 		local calls = capture_notify()
 
 		bqls.on_init(nil, {})

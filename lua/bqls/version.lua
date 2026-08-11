@@ -1,5 +1,12 @@
 local M = {}
 
+--- The minimum bqls server version each bqls.nvim feature relies on.
+--- Checked automatically against the connected server on LSP init
+--- (see bqls.on_init) so users don't have to track this themselves.
+M.REQUIREMENTS = {
+	{ feature = "Table Search", min_version = "0.6.0" },
+}
+
 --- Parses a semver-ish string ("v1.2.3" or "1.2.3") into { major, minor, patch }.
 ---@param version string
 ---@return integer[]|nil

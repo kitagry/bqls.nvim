@@ -49,3 +49,24 @@ describe("bqls.version.is_older_than", function()
 		assert.is_false(version.is_older_than("garbage", "v0.6.0"))
 	end)
 end)
+
+describe("bqls.version.REQUIREMENTS", function()
+	it("lists the minimum bqls server version bqls.nvim requires per feature", function()
+		assert.is_true(#version.REQUIREMENTS > 0, "expected at least one feature requirement")
+		for _, req in ipairs(version.REQUIREMENTS) do
+			assert.is_string(req.feature)
+			assert.is_string(req.min_version)
+		end
+	end)
+
+	it("includes the Table Search requirement documented in the README (v0.6.0)", function()
+		local found
+		for _, req in ipairs(version.REQUIREMENTS) do
+			if req.feature == "Table Search" then
+				found = req
+			end
+		end
+		assert.is_not_nil(found, "expected a Table Search requirement")
+		assert.are.same(0, version.compare(found.min_version, "0.6.0"))
+	end)
+end)

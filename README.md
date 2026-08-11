@@ -106,15 +106,7 @@ require("bqls").setup({
 
 ### Checking the bqls Server Version
 
-Some features (e.g. [Table Search](#table-search)) require a minimum version of the bqls server. Set `min_version` to have bqls.nvim warn you when the running server is older than expected:
-
-```lua
-require("bqls").setup({
-  min_version = "0.6.0",
-})
-```
-
-If the connected bqls server reports an older version, a warning is printed via `vim.notify` (`vim.log.levels.WARN`) once the LSP client initializes. This does not stop the client from attaching. `min_version` is optional; if it's not set, no check is performed.
+Some features (e.g. [Table Search](#table-search)) require a minimum version of the bqls server. bqls.nvim checks this automatically: once the LSP client initializes, it compares the connected server's reported version against the minimum each feature needs, and prints a `vim.notify` warning (`vim.log.levels.WARN`) for any that aren't met. This does not stop the client from attaching, and there's nothing to configure.
 
 ### Opening the Sidebar
 
@@ -144,7 +136,7 @@ vim.keymap.set("n", "<leader>db", require("bqls").sidebar.toggle)
 
 Press `f` in the sidebar to search tables across all displayed projects. Results are shown via telescope picker (falls back to `vim.ui.select` if telescope is not installed). Selecting a result opens the table in a non-sidebar window.
 
-> **Note:** Table search requires bqls server **v0.6.0 or above**.
+> **Note:** Table search requires bqls server **v0.6.0 or above**. See [Checking the bqls Server Version](#checking-the-bqls-server-version) for the automatic warning bqls.nvim shows if your server predates this.
 
 ## Development
 

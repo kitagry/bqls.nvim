@@ -123,3 +123,94 @@ describe("bqls.commands.convert_schema_to_markdown", function()
 		assert.are.same("", commands.convert_schema_to_markdown({}))
 	end)
 end)
+
+describe("bqls.commands.cancel_query", function()
+	local original_buf_request
+	local original_notify
+
+	before_each(function()
+		original_buf_request = vim.lsp.buf_request
+		original_notify = vim.notify
+	end)
+
+	after_each(function()
+		vim.lsp.buf_request = original_buf_request
+		vim.notify = original_notify
+	end)
+
+	it("sends bqls.cancelQuery with the buffer's job uri when a query is pending", function()
+		local uri = "bqls://project/p/job/j/location/l"
+		local bufnr = vim.uri_to_bufnr(uri)
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Loading..." })
+
+		local requested
+		vim.lsp.buf_request = function(bufnr_arg, method, params, handler)
+			requested = { bufnr = bufnr_arg, method = method, params = params, handler = handler }
+		end
+
+		commands.cancel_query(bufnr)
+
+		assert.is_not_nil(requested, "expected a workspace/executeCommand request to be sent")
+		assert.are.same("workspace/executeCommand", requested.method)
+		assert.are.same("bqls.cancelQuery", requested.params.command)
+		assert.are.same({ uri }, requested.params.arguments)
+		assert.are.same(bufnr, requested.bufnr)
+		assert.is_function(requested.handler)
+	end)
+
+	it("does not send a request and warns when the buffer is not showing a pending query", function()
+		local uri = "bqls://project/p/job/j/location/l2"
+		local bufnr = vim.uri_to_bufnr(uri)
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "| id |", "| :---: |", "| 1 |" })
+
+		local requested = false
+		vim.lsp.buf_request = function()
+			requested = true
+		end
+
+		local notified_level
+		vim.notify = function(_, level)
+			notified_level = level
+		end
+
+		commands.cancel_query(bufnr)
+
+		assert.is_false(requested, "expected no request to be sent once the query already finished")
+		assert.are.same(vim.log.levels.WARN, notified_level, "expected a warning explaining there is nothing to cancel")
+	end)
+end)
+
+describe("bqls.commands.cancel_query_handler", function()
+	local original_notify
+
+	before_each(function()
+		original_notify = vim.notify
+	end)
+
+	after_each(function()
+		vim.notify = original_notify
+	end)
+
+	it("notifies success when the server cancels the query", function()
+		local notified
+		vim.notify = function(msg, level)
+			notified = { msg = msg, level = level }
+		end
+
+		commands.cancel_query_handler(nil, nil, {})
+
+		assert.are.same(vim.log.levels.INFO, notified.level, "expected an info notification on success")
+	end)
+
+	it("notifies an error when the server fails to cancel the query", function()
+		local notified
+		vim.notify = function(msg, level)
+			notified = { msg = msg, level = level }
+		end
+
+		commands.cancel_query_handler({ message = "boom" }, nil, {})
+
+		assert.are.same("bqls: boom", notified.msg, "expected the server error message to be surfaced")
+		assert.are.same(vim.log.levels.ERROR, notified.level)
+	end)
+end)

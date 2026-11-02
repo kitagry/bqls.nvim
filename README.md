@@ -1,6 +1,19 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/logo-lockup-dark.svg">
+  <img src="./docs/assets/logo-lockup-light.svg" alt="bqls" width="300">
+</picture>
+
 ## bqls.nvim
 
 Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
+
+</div>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kitagry/bqls/main/docs/demo/demo.gif" alt="bqls.nvim: completion, hover, a lint quick fix, a dry-run cost estimate, and query results" width="960">
+</p>
 
 ### Prerequisites
 

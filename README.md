@@ -1,6 +1,19 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/logo-lockup-dark.svg">
+  <img src="./docs/assets/logo-lockup-light.svg" alt="bqls" width="300">
+</picture>
+
 ## bqls.nvim
 
 Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
+
+</div>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kitagry/bqls.nvim/assets/demo.gif" alt="bqls.nvim: the BigQuery Explorer sidebar, completion, hover, a lint quick fix, a dry-run cost estimate, and query results" width="960">
+</p>
 
 ### Prerequisites
 
@@ -87,8 +100,6 @@ vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
 
 You can choose `lua vim.lsp.buf.code_action()`.
 In order to save result to local file, you can use `:BqlsSave ./path/to/file.csv`.
-
-https://github.com/user-attachments/assets/2f5aef83-f341-4c04-bb37-88db45badb6d
 
 ## BigQuery Explorer (Sidebar)
 

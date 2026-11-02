@@ -12,7 +12,7 @@ Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/kitagry/bqls/main/docs/demo/demo.gif" alt="bqls.nvim: completion, hover, a lint quick fix, a dry-run cost estimate, and query results" width="960">
+  <img src="https://raw.githubusercontent.com/kitagry/bqls.nvim/assets/demo.gif" alt="bqls.nvim: the BigQuery Explorer sidebar, completion, hover, a lint quick fix, a dry-run cost estimate, and query results" width="960">
 </p>
 
 ### Prerequisites

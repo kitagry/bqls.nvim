@@ -3,12 +3,52 @@ local api = vim.api
 
 local M = {}
 
+local default_icons = {
+	project = "󰆼",
+	dataset = "󰉋",
+	table = "󰓫",
+	expanded = "▼",
+	collapsed = "▶",
+}
+
 local _state = {
 	bufnr = nil,
 	winnr = nil,
 	roots = {},
 	visible = {},
+	icons = default_icons,
 }
+
+local ns = api.nvim_create_namespace("bqls_sidebar")
+
+local highlight_links = {
+	BqlsSidebarExpander = "Comment",
+	BqlsSidebarProjectIcon = "Special",
+	BqlsSidebarProject = "Title",
+	BqlsSidebarDatasetIcon = "Type",
+	BqlsSidebarDataset = "Directory",
+	BqlsSidebarTableIcon = "Identifier",
+	BqlsSidebarTable = "Normal",
+}
+
+local highlight_groups = {
+	project = { icon = "BqlsSidebarProjectIcon", name = "BqlsSidebarProject" },
+	dataset = { icon = "BqlsSidebarDatasetIcon", name = "BqlsSidebarDataset" },
+	table = { icon = "BqlsSidebarTableIcon", name = "BqlsSidebarTable" },
+}
+
+local function define_highlights()
+	for group, link in pairs(highlight_links) do
+		api.nvim_set_hl(0, group, { link = link, default = true })
+	end
+end
+
+define_highlights()
+-- :colorscheme runs :hi clear, which drops default links, so restore them.
+api.nvim_create_autocmd("ColorScheme", {
+	group = api.nvim_create_augroup("BqlsSidebarHighlights", { clear = true }),
+	callback = define_highlights,
+})
 
 local function project_node(id)
 	return { id = id, name = id, type = "project", depth = 1, expanded = false, loaded = false, children = {} }
@@ -58,23 +98,43 @@ local function render()
 	_state.visible = {}
 	flatten(_state.roots, _state.visible)
 
+	local icons = _state.icons
+	-- Tables have no expander, so pad them to keep names aligned with
+	-- sibling datasets' names.
+	local expander_width = math.max(vim.fn.strdisplaywidth(icons.expanded), vim.fn.strdisplaywidth(icons.collapsed))
+	local table_padding = string.rep(" ", expander_width + 1)
+
 	local lines = {}
-	for _, node in ipairs(_state.visible) do
-		local indent = string.rep("  ", node.depth - 1)
-		local prefix
+	local highlights = {}
+	for i, node in ipairs(_state.visible) do
+		local line = string.rep("  ", node.depth - 1)
 		if node.type == "table" then
-			prefix = "  "
-		elseif node.expanded then
-			prefix = "▼ "
+			line = line .. table_padding
 		else
-			prefix = "▶ "
+			local expander = node.expanded and icons.expanded or icons.collapsed
+			table.insert(highlights, { i - 1, #line, #line + #expander, "BqlsSidebarExpander" })
+			line = line .. expander .. " "
 		end
-		table.insert(lines, indent .. prefix .. node.name)
+
+		local groups = highlight_groups[node.type]
+		local icon = icons[node.type]
+		if icon ~= "" then
+			table.insert(highlights, { i - 1, #line, #line + #icon, groups.icon })
+			line = line .. icon .. " "
+		end
+
+		table.insert(highlights, { i - 1, #line, #line + #node.name, groups.name })
+		table.insert(lines, line .. node.name)
 	end
 
 	api.nvim_set_option_value("modifiable", true, { buf = _state.bufnr })
 	api.nvim_buf_set_lines(_state.bufnr, 0, -1, false, lines)
 	api.nvim_set_option_value("modifiable", false, { buf = _state.bufnr })
+
+	api.nvim_buf_clear_namespace(_state.bufnr, ns, 0, -1)
+	for _, hl in ipairs(highlights) do
+		api.nvim_buf_set_extmark(_state.bufnr, ns, hl[1], hl[2], { end_col = hl[3], hl_group = hl[4] })
+	end
 end
 
 local function get_target_win()
@@ -308,6 +368,7 @@ end
 
 M.setup = function(config)
 	config = config or {}
+	_state.icons = vim.tbl_extend("force", default_icons, config.icons or {})
 	_state.roots = {}
 	for _, id in ipairs(config.project_ids or {}) do
 		table.insert(_state.roots, project_node(id))

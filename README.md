@@ -1,6 +1,19 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/logo-lockup-dark.svg">
+  <img src="./docs/assets/logo-lockup-light.svg" alt="bqls" width="300">
+</picture>
+
 ## bqls.nvim
 
 Neovim plugin for [BigQuery Language Server](https://github.com/kitagry/bqls).
+
+</div>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kitagry/bqls.nvim/assets/demo.gif" alt="bqls.nvim: the BigQuery Explorer sidebar, completion, hover, a lint quick fix, a dry-run cost estimate, and query results" width="960">
+</p>
 
 ### Prerequisites
 
@@ -72,7 +85,28 @@ require("lspconfig").bqls.setup({
 })
 ```
 
-If you change project_id or location after vim started:
+#### Lint
+
+Lint rules can be toggled with the `lint` setting:
+
+```lua
+vim.lsp.config("bqls", {
+    settings = {
+        project_id = "YOUR_PROJECT_ID",
+        lint = { rules = { ["null-comparison"] = false } },
+    },
+})
+```
+
+See [bqls docs/lint.md](https://github.com/kitagry/bqls/blob/main/docs/lint.md) for the list of rules and their options.
+
+To share lint settings between your editor and CI, put a [`.bqls.yaml`](https://github.com/kitagry/bqls/blob/main/docs/lint.md#config-file) in your repository. Precedence: the editor's `lint` setting > `.bqls.yaml` > rule defaults.
+
+To silence a single finding, choose the "Ignore *rule* on this line" code action (`vim.lsp.buf.code_action()`), which adds a `bqls:ignore` comment. To run the same rules in CI, use the [`bqls lint`](https://github.com/kitagry/bqls/blob/main/docs/lint.md#cli) CLI.
+
+#### Changing settings at runtime
+
+If you change settings after vim started, send only the keys you change; settings omitted from the notification keep their current values:
 
 ```lua
 vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
@@ -83,6 +117,16 @@ vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
 })
 ```
 
+A `lint` setting, when sent, replaces the whole rule set rather than merging into it. Send `lint = vim.empty_dict()` to restore the defaults:
+
+```lua
+vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
+  settings = { lint = vim.empty_dict() },
+})
+```
+
+> **Note:** A plain Lua `{}` is encoded as a JSON array (`vim.json.encode({ settings = {} })` gives `{"settings":[]}`), which bqls rejects. Use `vim.empty_dict()` for an empty object.
+
 ## Execute Query
 
 You can choose `lua vim.lsp.buf.code_action()`.
@@ -91,8 +135,6 @@ In order to save result to local file, you can use `:BqlsSave ./path/to/file.csv
 While a query is still running (the result buffer shows `Loading...`), run `:BqlsCancelQuery` from that buffer to cancel it. Running it after the query has already finished is a no-op with a warning, since there is nothing left to cancel.
 
 > **Note:** Cancelling a query requires bqls server support for the `bqls.cancelQuery` command.
-
-https://github.com/user-attachments/assets/2f5aef83-f341-4c04-bb37-88db45badb6d
 
 ## BigQuery Explorer (Sidebar)
 
@@ -107,6 +149,44 @@ require("bqls").setup({
 ```
 
 `project_ids` defaults to `{ "bigquery-public-data" }` if not specified.
+
+### Icons
+
+Projects, datasets, and tables are shown with [Nerd Font](https://www.nerdfonts.com/) icons by default:
+
+```
+▼ 󰆼 bigquery-public-data
+  ▼ 󰉋 samples
+      󰓫 shakespeare
+```
+
+Override any of them with `icons`; unspecified keys keep their defaults. Set an icon to `""` to hide it (e.g. if you don't use a Nerd Font).
+
+```lua
+require("bqls").setup({
+  icons = {
+    project = "󰆼",   -- nf-md-database
+    dataset = "󰉋",   -- nf-md-folder
+    table = "󰓫",     -- nf-md-table
+    expanded = "▼",
+    collapsed = "▶",
+  },
+})
+```
+
+### Highlight Groups
+
+Each group is defined with `default = true`, so your colorscheme or `vim.api.nvim_set_hl()` can override it.
+
+| Group | Default link | Used for |
+|-------|--------------|----------|
+| `BqlsSidebarExpander` | `Comment` | `▶` / `▼` markers |
+| `BqlsSidebarProjectIcon` | `Special` | Project icon |
+| `BqlsSidebarProject` | `Title` | Project name |
+| `BqlsSidebarDatasetIcon` | `Type` | Dataset icon |
+| `BqlsSidebarDataset` | `Directory` | Dataset name |
+| `BqlsSidebarTableIcon` | `Identifier` | Table icon |
+| `BqlsSidebarTable` | `Normal` | Table name |
 
 ### Opening the Sidebar
 

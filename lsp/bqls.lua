@@ -7,6 +7,7 @@ return {
 	filetypes = { "sql" },
 	root_markers = { ".git" },
 	handlers = require("bqls").handlers,
-	settings = {},
+	-- A plain {} is encoded as a JSON array, which bqls rejects as settings.
+	settings = vim.empty_dict(),
 	init_options = { supports_async_virtual_text_document = true },
 }

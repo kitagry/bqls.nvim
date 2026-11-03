@@ -238,6 +238,34 @@ M.save_result_handler = function(err, result, params)
 	vim.notify("bqls: save result to " .. result.url, vim.log.levels.INFO)
 end
 
+---@param err lsp.ResponseError
+---@param result any
+M.cancel_query_handler = function(err, result)
+	if err then
+		vim.notify("bqls: " .. err.message, vim.log.levels.ERROR)
+		return
+	end
+	vim.notify("bqls: query cancelled", vim.log.levels.INFO)
+end
+
+---@param bufnr integer buffer number of the virtual document showing the running query
+--- Sends `bqls.cancelQuery` for the job backing this buffer, identified by its
+--- `bqls://` uri. Skipped (with a warning) once the buffer no longer shows the
+--- "Loading..." placeholder, since the query has already finished by then.
+M.cancel_query = function(bufnr)
+	local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+	if not (#lines == 1 and lines[1] == "Loading...") then
+		vim.notify("bqls: no running query to cancel", vim.log.levels.WARN)
+		return
+	end
+
+	local uri = vim.uri_from_bufnr(bufnr)
+	vim.lsp.buf_request(bufnr, "workspace/executeCommand", {
+		command = "bqls.cancelQuery",
+		arguments = { uri },
+	}, M.cancel_query_handler)
+end
+
 ---@param project_id string Google Cloud project id
 ---@param callback fun(request_results: table<integer, {error: lsp.ResponseError, result: any}>) (function)
 --- The callback to call when all requests are finished.

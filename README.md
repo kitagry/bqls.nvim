@@ -85,7 +85,28 @@ require("lspconfig").bqls.setup({
 })
 ```
 
-If you change project_id or location after vim started:
+#### Lint
+
+Lint rules can be toggled with the `lint` setting:
+
+```lua
+vim.lsp.config("bqls", {
+    settings = {
+        project_id = "YOUR_PROJECT_ID",
+        lint = { rules = { ["null-comparison"] = false } },
+    },
+})
+```
+
+See [bqls docs/lint.md](https://github.com/kitagry/bqls/blob/main/docs/lint.md) for the list of rules and their options.
+
+To share lint settings between your editor and CI, put a [`.bqls.yaml`](https://github.com/kitagry/bqls/blob/main/docs/lint.md#config-file) in your repository. Precedence: the editor's `lint` setting > `.bqls.yaml` > rule defaults.
+
+To silence a single finding, choose the "Ignore *rule* on this line" code action (`vim.lsp.buf.code_action()`), which adds a `bqls:ignore` comment. To run the same rules in CI, use the [`bqls lint`](https://github.com/kitagry/bqls/blob/main/docs/lint.md#cli) CLI.
+
+#### Changing settings at runtime
+
+If you change settings after vim started, send only the keys you change; settings omitted from the notification keep their current values:
 
 ```lua
 vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
@@ -95,6 +116,16 @@ vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
   }
 })
 ```
+
+A `lint` setting, when sent, replaces the whole rule set rather than merging into it. Send `lint = vim.empty_dict()` to restore the defaults:
+
+```lua
+vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
+  settings = { lint = vim.empty_dict() },
+})
+```
+
+> **Note:** A plain Lua `{}` is encoded as a JSON array (`vim.json.encode({ settings = {} })` gives `{"settings":[]}`), which bqls rejects. Use `vim.empty_dict()` for an empty object.
 
 ## Execute Query
 

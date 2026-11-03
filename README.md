@@ -146,6 +146,44 @@ require("bqls").setup({
 
 `project_ids` defaults to `{ "bigquery-public-data" }` if not specified.
 
+### Icons
+
+Projects, datasets, and tables are shown with [Nerd Font](https://www.nerdfonts.com/) icons by default:
+
+```
+▼ 󰆼 bigquery-public-data
+  ▼ 󰉋 samples
+      󰓫 shakespeare
+```
+
+Override any of them with `icons`; unspecified keys keep their defaults. Set an icon to `""` to hide it (e.g. if you don't use a Nerd Font).
+
+```lua
+require("bqls").setup({
+  icons = {
+    project = "󰆼",   -- nf-md-database
+    dataset = "󰉋",   -- nf-md-folder
+    table = "󰓫",     -- nf-md-table
+    expanded = "▼",
+    collapsed = "▶",
+  },
+})
+```
+
+### Highlight Groups
+
+Each group is defined with `default = true`, so your colorscheme or `vim.api.nvim_set_hl()` can override it.
+
+| Group | Default link | Used for |
+|-------|--------------|----------|
+| `BqlsSidebarExpander` | `Comment` | `▶` / `▼` markers |
+| `BqlsSidebarProjectIcon` | `Special` | Project icon |
+| `BqlsSidebarProject` | `Title` | Project name |
+| `BqlsSidebarDatasetIcon` | `Type` | Dataset icon |
+| `BqlsSidebarDataset` | `Directory` | Dataset name |
+| `BqlsSidebarTableIcon` | `Identifier` | Table icon |
+| `BqlsSidebarTable` | `Normal` | Table name |
+
 ### Opening the Sidebar
 
 ```lua

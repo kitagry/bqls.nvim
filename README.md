@@ -132,6 +132,10 @@ vim.lsp.buf_notify(0, "workspace/didChangeConfiguration", {
 You can choose `lua vim.lsp.buf.code_action()`.
 In order to save result to local file, you can use `:BqlsSave ./path/to/file.csv`.
 
+While a query is still running (the result buffer shows `Loading...`), run `:BqlsCancelQuery` from that buffer to cancel it. Running it after the query has already finished is a no-op with a warning, since there is nothing left to cancel.
+
+> **Note:** Cancelling a query requires bqls server support for the `bqls.cancelQuery` command.
+
 ## BigQuery Explorer (Sidebar)
 
 A built-in sidebar to browse projects, datasets, and tables without any extra dependencies.

@@ -38,6 +38,10 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufFilePost" }, {
 				arguments = { vim.fn.expand("%:p"), file_path },
 			}, require("bqls").handlers["workspace/executeCommand"])
 		end, { desc = "Save bqls result", nargs = "*" })
+
+		vim.api.nvim_buf_create_user_command(0, "BqlsCancelQuery", function()
+			require("bqls.commands").cancel_query(0)
+		end, { desc = "Cancel the running bqls query" })
 	end,
 })
 vim.api.nvim_create_autocmd("BufNew", {
